@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4ecdc4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>灵感收集</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --primary: #4ecdc4;
+    --primary-dark: #3dbdb5;
+    --primary-light: #e8faf8;
+    --bg: #f7f9fc;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --text-secondary: #7f8c9b;
+    --text-light: #b0b8c4;
+    --border: #eef1f5;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-hover: 0 6px 24px rgba(0,0,0,0.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+    --danger: #e74c5c;
+    --danger-light: #fde8ea;
+    --success: #2ecc71;
+  }
+
+  html { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100%;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  header {
+    padding: 24px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .logo span { color: var(--primary); }
+
+  nav { display: flex; gap: 4px; }
+
+  .nav-link {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 20px;
+    transition: all var(--transition);
+  }
+
+  .nav-link:hover { color: var(--text); background: var(--border); }
+  .nav-link.active {
+    color: #fff;
+    background: var(--primary);
+  }
+
+  #content { flex: 1; padding: 28px 0; }
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-title .count {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-light);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-light);
+  }
+
+  .empty-state .icon { font-size: 56px; margin-bottom: 16px; display: block; }
+  .empty-state p { font-size: 15px; }
+
+  .card-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
+  }
+
+  .card .card-body { flex: 1; min-width: 0; }
+  .card .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .card .card-excerpt {
+    font-size: 14px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card .card-meta {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 6px;
+  }
+
+  .card-check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: #fff;
+    font-size: 12px;
+    color: transparent;
+  }
+
+  .card-check:hover { border-color: var(--primary); }
+
+  .card-check.checked {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  .card.completed .card-title {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+
+  .card.completed .card-excerpt {
+    text-decoration: line-through;
+  }
+
+  .card.completed { opacity: 0.7; }
+
+  .fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    font-size: 28px;
+    font-weight: 300;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(78, 205, 196, 0.35);
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 100;
+  }
+
+  .fab:hover {
+    background: var(--primary-dark);
+    transform: scale(1.06);
+    box-shadow: 0 6px 24px rgba(78, 205, 196, 0.45);
+  }
+
+  .fab:active { transform: scale(0.95); }
+
+  .detail-page { max-width: 680px; }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .btn-back {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    line-height: 1;
+    transition: color var(--transition);
+  }
+
+  .btn-back:hover { color: var(--text); }
+
+  .detail-title {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+
+  .detail-meta {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .detail-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+  }
+
+  .detail-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    text-decoration: none;
+    line-height: 1.4;
+  }
+
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+  }
+
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+  .btn-danger { background: var(--danger-light); color: var(--danger); }
+  .btn-danger:hover { background: #fdd5d8; }
+
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #27ae60; }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+  }
+
+  .modal.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(3px);
+  }
+
+  .modal-dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    animation: modalIn 0.2s ease;
+  }
+
+  .modal-sm { max-width: 380px; }
+
+  @keyframes modalIn {
+    from { transform: translateY(12px) scale(0.97); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .modal-header h2 { font-size: 19px; font-weight: 600; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color var(--transition);
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .form-group { margin-bottom: 18px; }
+
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color var(--transition);
+    outline: none;
+    background: var(--bg);
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: var(--primary);
+    background: #fff;
+  }
+
+  .form-group textarea { min-height: 120px; resize: vertical; }
+
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .form-actions .btn { min-width: 80px; justify-content: center; }
+
+  .confirm-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  @media (max-width: 600px) {
+    #app { padding: 0 16px; }
+    header { padding: 18px 0 16px; }
+    .logo { font-size: 19px; }
+    .nav-link { padding: 6px 14px; font-size: 14px; }
+    .fab { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 24px; }
+    .detail-title { font-size: 22px; }
+    .detail-content { padding: 18px; }
+    .modal-dialog { padding: 22px; }
+    .card { padding: 14px 16px; }
+    .card-delete-btn { opacity: 1; }
+  }
+  .fab-index { z-index: 100; }
+
+  .card-delete-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    opacity: 0;
+    margin-top: -2px;
+  }
+
+  .card:hover .card-delete-btn { opacity: 1; }
+  .card-delete-btn:hover { background: var(--danger-light); color: var(--danger); }
+
+  .trash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .trash-header .page-title { margin-bottom: 0; }
+
+  .trash-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+  }
+
+  .trash-tag.idea { background: var(--primary-light); color: var(--primary-dark); }
+  .trash-tag.plan { background: #fef3e2; color: #d68910; }
+
+  .card.trash-card { cursor: default; }
+  .card.trash-card:hover { transform: none; box-shadow: var(--shadow); }
+  .card.trash-card .card-body { cursor: default; }
+
+  .trash-meta {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .editor-page {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 110px);
+  }
+
+  .editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .editor-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .editor-title-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 18px 4px 10px;
+  }
+
+  .editor-title-input::placeholder { color: var(--text-light); }
+
+  .editor-content-input {
+    width: 100%;
+    flex: 1;
+    min-height: 45vh;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    padding: 6px 4px 16px;
+    resize: vertical;
+  }
+
+  .editor-content-input::placeholder { color: var(--text-light); }
+
+  .editor-images {
+    padding: 14px 4px 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .image-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .image-thumb {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+
+  .image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .remove-img {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .remove-img:hover { background: var(--danger); }
+
+  .detail-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .detail-images img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    cursor: zoom-in;
+    transition: transform var(--transition);
+    display: block;
+  }
+
+  .detail-images img:hover { transform: scale(1.02); }
+
+  .lightbox-img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  #modal .modal-dialog { max-width: 720px; }
+
+  @media (max-width: 600px) {
+    .editor-title-input { font-size: 24px; }
+    .editor-content-input { min-height: 40vh; }
+    .detail-images { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="logo">✨ <span>灵感</span>收集</div>
+    <nav>
+      <a href="#ideas" class="nav-link active" data-page="ideas">💡 想法</a>
+      <a href="#plans" class="nav-link" data-page="plans">📋 计划</a>
+      <a href="#trash" class="nav-link" data-page="trash">🗑 回收站</a>
+    </nav>
+  </header>
+  <main id="content"></main>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 id="modal-title">新建</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="confirm-modal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog modal-sm">
+    <div class="modal-header">
+      <h2 id="confirm-title">确认</h2>
+      <button class="modal-close" id="confirm-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-text" id="confirm-text"></div>
+      <div class="confirm-actions" id="confirm-actions"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'inspiration_app_data';
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        return {
+          ideas: Array.isArray(data.ideas) ? data.ideas : [],
+          plans: Array.isArray(data.plans) ? data.plans : [],
+          trash: Array.isArray(data.trash) ? data.trash : [],
+        };
+     }
+   } catch (e) { /* ignore */ }
+    return { ideas: [], plans: [], trash: [] };
+  }
+
+  function saveData(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      alert('保存失败：存储空间不足，请减少图片数量或使用较小的图片');
+      return false;
+    }
+  }
+
+  function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function formatTime(ts) {
+    const d = new Date(ts);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  let currentRoute = '';
+  let pendingIdeaForPlan = null;
+
+  function navigate(hash) {
+    if (!hash || hash === '#') hash = '#ideas';
+    window.location.hash = hash;
+  }
+
+  function handleRoute() {
+    const hash = window.location.hash || '#ideas';
+    const matchIdea = hash.match(/^#idea\/(.+)$/);
+    const matchPlan = hash.match(/^#plan\/(.+)$/);
+
+    let route;
+    if (hash === '#idea/new') route = { page: 'idea-editor' };
+    else if (hash === '#plan/new') route = { page: 'plan-editor' };
+    else if (matchIdea) route = { page: 'idea-detail', id: matchIdea[1] };
+    else if (matchPlan) route = { page: 'plan-detail', id: matchPlan[1] };
+    else if (hash === '#plans') route = { page: 'plans' };
+    else if (hash === '#trash') route = { page: 'trash' };
+    else route = { page: 'ideas' };
+
+    if (currentRoute === hash) return;
+    currentRoute = hash;
+
+    const activePage = route.page === 'idea-editor' ? 'ideas'
+      : route.page === 'plan-editor' ? 'plans'
+      : route.page;
+    document.querySelectorAll('.nav-link').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('href') === `#${activePage}`);
+    });
+
+    render(route);
+  }
+
+  window.addEventListener('hashchange', handleRoute);
+
+  function render(route) {
+    const content = document.getElementById('content');
+    switch (route.page) {
+      case 'ideas': renderIdeasList(content); break;
+      case 'idea-editor': renderIdeaEditor(content); break;
+      case 'idea-detail': renderIdeaDetail(content, route.id); break;
+      case 'plans': renderPlansList(content); break;
+      case 'plan-editor': renderPlanEditor(content); break;
+      case 'plan-detail': renderPlanDetail(content, route.id); break;
+      case 'trash': renderTrashList(content); break;
+      default: renderIdeasList(content);
+    }
+  }
+
+  function renderIdeasList(container) {
+    const data = loadData();
+    const ideas = data.ideas.sort((a, b) => b.createdAt - a.createdAt);
+
+    let html = `<div class="page-title">💡 想法 <span class="count">(${ideas.length})</span></div>`;
+
+    if (ideas.length === 0) {
+      html += `<div class="empty-state"><span class="icon">💭</span><p>还没有想法，点击 + 记录第一个灵感吧</p></div>`;
+    } else {
+      html += `<div class="card-grid">`;
+      for (const idea of ideas) {
+        const excerpt = (idea.content || '').replace(/\n/g, ' ').slice(0, 80);
+        const imgCount = Array.isArray(idea.images) ? idea.images.length : 0;
+        html += `
+          <div class="card" onclick="navigate('#idea/${idea.id}')" data-id="${idea.id}">
+            <div class="card-body">
+              <div class="card-title">${escHtml(idea.title || '未命名想法')}</div>
+              <div class="card-excerpt">${escHtml(excerpt)}${(idea.content||'').length > 80 ? '…' : ''}</div>
+              <div class="card-meta">${formatTime(idea.createdAt)}${imgCount ? ` · 🖼 ${imgCount}` : ''}</div>
+            </div>
+            <button class="card-delete-btn" onclick="event.stopPropagation();confirmDeleteIdea('${idea.id}')" title="删除">🗑</button>
+          </div>
+        `;
+      }
+      html += `</div>`;
+    }
+
+    html += `<button class="fab" onclick="navigate('#idea/new')" title="新建想法">+</button>`;
+    container.innerHTML = html;
+  }
+
+  function renderIdeaDetail(container, id) {
+    const data = loadData();
+    const idea = data.ideas.find(i => i.id === id);
+
+    if (!idea) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">🔍</span>
+          <p>想法不存在或已被删除</p>
+          <button class="btn btn-outline" onclick="navigate('#ideas')" style="margin-top:16px;">返回想法列表</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="detail-page">
+        <div class="detail-header">
+          <a class="btn-back" href="#ideas" onclick="event.preventDefault();navigate('#ideas')">←</a>
+          <span style="color:var(--text-light);font-size:14px;">想法详情</span>
+        </div>
+        <h1 class="detail-title">${escHtml(idea.title || '未命名想法')}</h1>
+        <div class="detail-meta">
+          <span>🕐 ${formatTime(idea.createdAt)}</span>
+        </div>
+        <div class="detail-content">${escHtml(idea.content || '暂无内容')}</div>
+        ${imagesBlock(idea.images)}
+        <div class="detail-actions">
+          <button class="btn btn-primary" onclick="convertIdeaToPlan('${idea.id}')">📋 转为计划</button>
+          <button class="btn btn-danger" onclick="confirmDeleteIdea('${idea.id}')">🗑 删除</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPlansList(container) {
+    const data = loadData();
+    const plans = data.plans.sort((a, b) => b.createdAt - a.createdAt);
+
+    let html = `<div class="page-title">📋 计划 <span class="count">(${plans.length})</span></div>`;
+
+    if (plans.length === 0) {
+      html += `<div class="empty-state"><span class="icon">📌</span><p>还没有计划，从想法转化或直接新建一个吧</p></div>`;
+    } else {
+      html += `<div class="card-grid">`;
+      for (const plan of plans) {
+        const excerpt = (plan.content || '').replace(/\n/g, ' ').slice(0, 80);
+        const completed = plan.completed ? 'checked' : '';
+        const completedClass = plan.completed ? 'completed' : '';
+        const imgCount = Array.isArray(plan.images) ? plan.images.length : 0;
+        html += `
+          <div class="card ${completedClass}" data-id="${plan.id}">
+            <div class="card-check ${completed}" onclick="event.stopPropagation();togglePlan('${plan.id}')">${plan.completed ? '✓' : ''}</div>
+            <div class="card-body" onclick="navigate('#plan/${plan.id}')">
+              <div class="card-title">${escHtml(plan.title || '未命名计划')}</div>
+              <div class="card-excerpt">${escHtml(excerpt)}${(plan.content||'').length > 80 ? '…' : ''}</div>
+              <div class="card-meta">${formatTime(plan.createdAt)}${imgCount ? ` · 🖼 ${imgCount}` : ''}${plan.completed ? ' · ✅ 已完成' : ''}</div>
+            </div>
+            <button class="card-delete-btn" onclick="event.stopPropagation();confirmDeletePlan('${plan.id}')" title="删除">🗑</button>
+          </div>
+        `;
+      }
+      html += `</div>`;
+    }
+
+    html += `<button class="fab" onclick="navigate('#plan/new')" title="新建计划">+</button>`;
+    container.innerHTML = html;
+  }
+
+  function renderPlanDetail(container, id) {
+    const data = loadData();
+    const plan = data.plans.find(p => p.id === id);
+
+    if (!plan) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">🔍</span>
+          <p>计划不存在或已被删除</p>
+          <button class="btn btn-outline" onclick="navigate('#plans')" style="margin-top:16px;">返回计划列表</button>
+        </div>
+      `;
+      return;
+    }
+
+    const titleStyle = plan.completed ? 'style="text-decoration:line-through;color:var(--text-light);"' : '';
+    container.innerHTML = `
+      <div class="detail-page">
+        <div class="detail-header">
+          <a class="btn-back" href="#plans" onclick="event.preventDefault();navigate('#plans')">←</a>
+          <span style="color:var(--text-light);font-size:14px;">计划详情</span>
+        </div>
+        <h1 class="detail-title" ${titleStyle}>${escHtml(plan.title || '未命名计划')}</h1>
+        <div class="detail-meta">
+          <span>🕐 ${formatTime(plan.createdAt)}</span>
+          ${plan.completed ? '<span>✅ 已完成</span>' : '<span>⏳ 进行中</span>'}
+        </div>
+        <div class="detail-content">${escHtml(plan.content || '暂无内容')}</div>
+        ${imagesBlock(plan.images)}
+        <div class="detail-actions">
+          ${plan.completed
+            ? `<button class="btn btn-outline" onclick="togglePlan('${plan.id}')">↩ 标记未完成</button>`
+            : `<button class="btn btn-success" onclick="togglePlan('${plan.id}')">✅ 标记完成</button>`
+          }
+          <button class="btn btn-danger" onclick="confirmDeletePlan('${plan.id}')">🗑 删除</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', function() {
+      this.closest('.modal').classList.remove('open');
+    });
+  });
+
+  document.getElementById('modal-close-btn').addEventListener('click', () => closeModal('modal'));
+  document.getElementById('confirm-close-btn').addEventListener('click', () => closeModal('confirm-modal'));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal('modal');
+      closeModal('confirm-modal');
+    }
+  });
+
+  function renderIdeaEditor(container) {
+    editorType = 'idea';
+    editorImages = [];
+    container.innerHTML = `
+      <div class="editor-page">
+        <div class="editor-toolbar">
+          <button class="btn btn-outline" onclick="navigate('#ideas')">取消</button>
+          <span class="editor-label">💡 新想法</span>
+          <button class="btn btn-primary" onclick="saveIdea()">保存</button>
+        </div>
+        <input type="text" class="editor-title-input" id="idea-title" placeholder="想法标题" maxlength="100" autocomplete="off">
+        <textarea class="editor-content-input" id="idea-content" placeholder="记录你的灵感…"></textarea>
+        <div class="editor-images">
+          <div class="image-preview-list" id="idea-image-preview"></div>
+          <button class="btn btn-outline" onclick="triggerImagePicker('idea')">🖼 添加图片</button>
+          <input type="file" id="idea-file-input" accept="image/*" multiple hidden onchange="handleImagesSelected('idea')">
+        </div>
+      </div>
+    `;
+    document.getElementById('idea-title').focus();
+  }
+
+  function saveIdea() {
+    const title = document.getElementById('idea-title').value.trim();
+    const content = document.getElementById('idea-content').value.trim();
+    if (!title && !content && editorImages.length === 0) {
+      alert('请至少填写标题、内容或添加一张图片');
+      return;
+    }
+    const data = loadData();
+    data.ideas.push({
+      id: genId(),
+      title: title || '未命名想法',
+      content: content || '',
+      images: editorImages.slice(),
+      createdAt: Date.now(),
+    });
+    if (!saveData(data)) return;
+    navigate('#ideas');
+  }
+
+  function confirmDeleteIdea(id) {
+    const data = loadData();
+    const idea = data.ideas.find(i => i.id === id);
+    if (!idea) return;
+    document.getElementById('confirm-title').textContent = '🗑 删除想法';
+    document.getElementById('confirm-text').textContent = `确定将「${idea.title}」移至回收站？你可以随时恢复它。`;
+   document.getElementById('confirm-actions').innerHTML = `
+     <button class="btn btn-outline" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-danger" onclick="deleteIdea('${id}')">移至回收站</button>
+   `;
+    openModal('confirm-modal');
+  }
+
+  function deleteIdea(id) {
+    closeModal('confirm-modal');
+    const data = loadData();
+    const idx = data.ideas.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    const item = data.ideas.splice(idx, 1)[0];
+    data.trash.push({ ...item, type: 'idea', deletedAt: Date.now() });
+    saveData(data);
+    navigate('#ideas');
+  }
+
+  function convertIdeaToPlan(ideaId) {
+    const data = loadData();
+    const idea = data.ideas.find(i => i.id === ideaId);
+    if (!idea) return;
+    pendingIdeaForPlan = {
+      title: idea.title,
+      content: idea.content,
+      images: Array.isArray(idea.images) ? idea.images.slice() : [],
+      ideaId: idea.id,
+    };
+    navigate('#plan/new');
+  }
+
+  function renderPlanEditor(container) {
+    editorType = 'plan';
+    editorImages = pendingIdeaForPlan && Array.isArray(pendingIdeaForPlan.images)
+      ? pendingIdeaForPlan.images.slice()
+      : [];
+    const prefill = pendingIdeaForPlan || { title: '', content: '' };
+    container.innerHTML = `
+      <div class="editor-page">
+        <div class="editor-toolbar">
+          <button class="btn btn-outline" onclick="navigate('#plans');pendingIdeaForPlan=null;">取消</button>
+          <span class="editor-label">📋 ${prefill.title ? '从想法创建计划' : '新计划'}</span>
+          <button class="btn btn-primary" onclick="savePlan()">保存</button>
+        </div>
+        <input type="text" class="editor-title-input" id="plan-title" placeholder="计划标题" maxlength="100" autocomplete="off">
+        <textarea class="editor-content-input" id="plan-content" placeholder="写下你的执行计划…"></textarea>
+        <div class="editor-images">
+          <div class="image-preview-list" id="plan-image-preview"></div>
+          <button class="btn btn-outline" onclick="triggerImagePicker('plan')">🖼 添加图片</button>
+          <input type="file" id="plan-file-input" accept="image/*" multiple hidden onchange="handleImagesSelected('plan')">
+        </div>
+      </div>
+    `;
+    document.getElementById('plan-title').value = prefill.title || '';
+    document.getElementById('plan-content').value = prefill.content || '';
+    renderImagePreview('plan');
+    document.getElementById('plan-title').focus();
+  }
+
+  function savePlan() {
+    const title = document.getElementById('plan-title').value.trim();
+    const content = document.getElementById('plan-content').value.trim();
+    if (!title && !content && editorImages.length === 0) {
+      alert('请至少填写标题、内容或添加一张图片');
+      return;
+    }
+    const data = loadData();
+    const plan = {
+      id: genId(),
+      title: title || '未命名计划',
+      content: content || '',
+      images: editorImages.slice(),
+      completed: false,
+      createdAt: Date.now(),
+    };
+    if (pendingIdeaForPlan) {
+      plan.ideaId = pendingIdeaForPlan.ideaId;
+      pendingIdeaForPlan = null;
+    }
+    data.plans.push(plan);
+    if (!saveData(data)) return;
+    navigate('#plans');
+  }
+
+  function togglePlan(id) {
+    const data = loadData();
+    const plan = data.plans.find(p => p.id === id);
+    if (!plan) return;
+    plan.completed = !plan.completed;
+    saveData(data);
+    handleRoute();
+  }
+
+  function confirmDeletePlan(id) {
+    const data = loadData();
+    const plan = data.plans.find(p => p.id === id);
+    if (!plan) return;
+    document.getElementById('confirm-title').textContent = '🗑 删除计划';
+    document.getElementById('confirm-text').textContent = `确定将「${plan.title}」移至回收站？你可以随时恢复它。`;
+   document.getElementById('confirm-actions').innerHTML = `
+     <button class="btn btn-outline" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-danger" onclick="deletePlan('${id}')">移至回收站</button>
+   `;
+    openModal('confirm-modal');
+  }
+
+  function deletePlan(id) {
+    closeModal('confirm-modal');
+    const data = loadData();
+    const idx = data.plans.findIndex(p => p.id === id);
+    if (idx === -1) return;
+    const item = data.plans.splice(idx, 1)[0];
+    data.trash.push({ ...item, type: 'plan', deletedAt: Date.now() });
+    saveData(data);
+    navigate('#plans');
+  }
+
+  // ===== Image Helpers =====
+  let editorImages = [];
+  let editorType = 'idea';
+
+  function renderImagePreview(type) {
+    const el = document.getElementById(type + '-image-preview');
+    if (!el) return;
+    if (!editorImages.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = editorImages.map((src, i) => `
+      <div class="image-thumb">
+        <img src="${src}" alt="待添加图片 ${i + 1}">
+        <button class="remove-img" onclick="removeEditorImage(${i})" title="移除图片">×</button>
+      </div>
+    `).join('');
+  }
+
+  function triggerImagePicker(type) {
+    document.getElementById(type + '-file-input')?.click();
+  }
+
+  async function handleImagesSelected(type) {
+    const input = document.getElementById(type + '-file-input');
+    const files = Array.from(input.files || []);
+    input.value = '';
+    if (!files.length) return;
+    if (editorImages.length + files.length > 9) {
+      alert('最多添加 9 张图片');
+      return;
+    }
+    for (const file of files) {
+      try {
+        editorImages.push(await compressImage(file));
+      } catch (e) {
+        alert(`图片「${file.name}」读取失败`);
+      }
+    }
+    renderImagePreview(type);
+  }
+
+  function removeEditorImage(index) {
+    editorImages.splice(index, 1);
+    renderImagePreview(editorType);
+  }
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1280;
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (w > MAX || h > MAX) {
+            const scale = Math.min(MAX / w, MAX / h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (file.type !== 'image/png' && file.type !== 'image/webp') {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, w, h);
+          }
+          ctx.drawImage(img, 0, 0, w, h);
+          let type = 'image/jpeg';
+          if (file.type === 'image/png' || file.type === 'image/webp') type = file.type;
+          resolve(canvas.toDataURL(type, 0.82));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function imagesBlock(images) {
+    if (!Array.isArray(images) || !images.length) return '';
+    return `<div class="detail-images">${images.map((src, i) => `<img src="${src}" alt="图片 ${i + 1}" onclick="viewImage('${src}')">`).join('')}</div>`;
+  }
+
+  function viewImage(src) {
+    document.getElementById('modal-title').textContent = '🖼 图片预览';
+    document.getElementById('modal-body').innerHTML = `<img class="lightbox-img" src="${src}" alt="图片预览">`;
+    openModal('modal');
+  }
+
+  function escHtml(str) {
+   const div = document.createElement('div');
+   div.textContent = str;
+   return div.innerHTML;
+ }
+
+  function renderTrashList(container) {
+    const data = loadData();
+    const items = data.trash.sort((a, b) => b.deletedAt - a.deletedAt);
+
+    let html = `<div class="trash-header">
+      <div class="page-title">🗑 回收站 <span class="count">(${items.length})</span></div>
+      ${items.length > 0 ? '<button class="btn btn-danger" onclick="confirmEmptyTrash()" style="font-size:13px;padding:6px 14px;">清空回收站</button>' : ''}
+    </div>`;
+
+    if (items.length === 0) {
+      html += `<div class="empty-state"><span class="icon">🗑️</span><p>回收站是空的</p></div>`;
+    } else {
+      html += `<div class="card-grid">`;
+      for (const item of items) {
+        const excerpt = (item.content || '').replace(/\n/g, ' ').slice(0, 60);
+        const tagClass = item.type === 'idea' ? 'idea' : 'plan';
+        const tagLabel = item.type === 'idea' ? '💡 想法' : '📋 计划';
+        const imgCount = Array.isArray(item.images) ? item.images.length : 0;
+        html += `
+          <div class="card trash-card" data-id="${item.id}">
+            <div class="card-body">
+              <div class="card-title">${escHtml(item.title || '未命名')}<span class="trash-tag ${tagClass}">${tagLabel}</span></div>
+              <div class="card-excerpt">${escHtml(excerpt)}${(item.content||'').length > 60 ? '…' : ''}</div>
+              <div class="trash-meta">
+                <span>删除于 ${formatTime(item.deletedAt)}</span>${imgCount ? `<span>🖼 ${imgCount}</span>` : ''}
+              </div>
+            </div>
+            <button class="card-delete-btn" onclick="event.stopPropagation();restoreFromTrash('${item.id}','${item.type}')" title="恢复" style="opacity:1;color:var(--primary);">↩</button>
+            <button class="card-delete-btn" onclick="event.stopPropagation();permanentlyDelete('${item.id}')" title="永久删除" style="opacity:1;">✕</button>
+          </div>
+        `;
+      }
+      html += `</div>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function restoreFromTrash(id, type) {
+    const data = loadData();
+    const idx = data.trash.findIndex(t => t.id === id);
+    if (idx === -1) return;
+    const item = data.trash.splice(idx, 1)[0];
+    const { type: t, deletedAt, ...rest } = item;
+    if (type === 'idea') {
+      data.ideas.push(rest);
+    } else {
+      data.plans.push(rest);
+    }
+    saveData(data);
+    navigate('#trash');
+  }
+
+  function permanentlyDelete(id) {
+    const data = loadData();
+    data.trash = data.trash.filter(t => t.id !== id);
+    saveData(data);
+    navigate('#trash');
+  }
+
+  function confirmEmptyTrash() {
+    document.getElementById('confirm-title').textContent = '🗑 清空回收站';
+    document.getElementById('confirm-text').textContent = '确定要永久清空回收站中的所有内容吗？此操作不可恢复。';
+    document.getElementById('confirm-actions').innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal('confirm-modal')">取消</button>
+      <button class="btn btn-danger" onclick="emptyTrash()">确认清空</button>
+    `;
+    openModal('confirm-modal');
+  }
+
+  function emptyTrash() {
+    closeModal('confirm-modal');
+    const data = loadData();
+    data.trash = [];
+    saveData(data);
+    navigate('#trash');
+  }
+
+  handleRoute();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+</script>
+
+</body>
+</html>
