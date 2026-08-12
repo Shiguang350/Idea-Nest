@@ -1,9 +1,10 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const apiHandler = require('./api/generate-image');
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { onRequestPost } from './functions/api/generate-image.js';
 
-const root = __dirname;
+const root = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT) || 8080;
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -19,24 +20,21 @@ http.createServer((req, res) => {
   if (url.pathname === '/api/generate-image') {
     const chunks = [];
     req.on('data', (chunk) => chunks.push(chunk));
-    req.on('end', () => {
+    req.on('end', async () => {
       const rawBody = Buffer.concat(chunks).toString('utf8');
-      const headers = {};
-      const mockRes = {
-        statusCode: 200,
-        setHeader(key, value) { headers[key] = value; },
-        status(code) { this.statusCode = code; return this; },
-        json(data) {
-          const payload = JSON.stringify(data);
-          res.writeHead(this.statusCode, {
-            'Content-Type': 'application/json',
-            ...headers,
-          });
-          res.end(payload);
-        },
-        end() { res.end(); },
-      };
-      apiHandler({ method: req.method, body: rawBody }, mockRes);
+      try {
+        const mockRequest = new Request('http://127.0.0.1/api/generate-image', {
+          method: req.method,
+          headers: { 'Content-Type': 'application/json' },
+          body: req.method === 'POST' ? rawBody : undefined,
+        });
+        const response = await onRequestPost({ request: mockRequest, env: {} });
+        res.writeHead(response.status, Object.fromEntries(response.headers));
+        res.end(await response.text());
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || '图像生成失败' }));
+      }
     });
     return;
   }

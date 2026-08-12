@@ -10,17 +10,19 @@
 - 回收站：误删恢复、永久删除、清空
 - PWA：手机安装、离线使用
 
-## 部署（推荐 Vercel）
+## 部署（推荐 Cloudflare Pages）
 
-AI 配图需要一个轻量 Serverless 接口，建议用 Vercel 部署：
+AI 配图需要一个轻量 Serverless 接口，建议用 Cloudflare Pages 部署：
 
 1. 把项目推到 GitHub 仓库
-2. 打开 https://vercel.com/new
-3. 导入这个仓库，框架选择 `Other`，直接部署
-4. 部署完成后会得到一个 HTTPS 地址
+2. 打开 Cloudflare Pages，创建项目并连接 GitHub 仓库
+3. Framework preset 选择 `None`
+4. Build command 留空
+5. Build output directory 填 `/`
+6. 部署完成后会得到一个 HTTPS 地址
 
 AI 配图默认使用免费的 Pollinations 图像接口，不需要配置 API Key。
-以后想换成付费接口，只需要在 Vercel 环境变量里设置 `IMAGE_API_BASE`。
+以后想换成付费接口，只需要在 Cloudflare 环境变量里设置 `IMAGE_API_BASE`。
 
 纯静态部署（GitHub Pages）也能打开应用，但 AI 配图按钮不可用。
 
@@ -50,7 +52,8 @@ node server.js
 ## 文件
 
 - `index.html`：应用主体
-- `api/generate-image.js`：AI 配图代理接口
+- `functions/api/generate-image.js`：Cloudflare Functions AI 配图接口
+- `server.js`：本地预览服务器
 - `manifest.webmanifest`：手机安装配置
 - `sw.js`：离线缓存
 - `icons/`：应用图标
