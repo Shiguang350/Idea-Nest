@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inspiration-v2';
+const CACHE_NAME = 'inspiration-v3';
 const APP_SHELL = [
   './index.html',
   './manifest.webmanifest',

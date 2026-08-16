@@ -769,10 +769,19 @@
 
   function navigate(hash) {
     if (!hash || hash === '#') hash = '#ideas';
-    window.location.hash = hash;
+    if (window.location.hash === hash) {
+      renderCurrent();
+      return;
+    }
+    history.replaceState(null, '', hash);
+    handleRoute();
   }
 
-  function handleRoute() {
+  function renderCurrent() {
+    handleRoute(true);
+  }
+
+  function handleRoute(force) {
     const hash = window.location.hash || '#ideas';
     const matchIdeaEdit = hash.match(/^#idea\/([^/]+)\/edit$/);
     const matchPlanEdit = hash.match(/^#plan\/([^/]+)\/edit$/);
@@ -790,7 +799,7 @@
     else if (hash === '#trash') route = { page: 'trash' };
     else route = { page: 'ideas' };
 
-    if (currentRoute === hash) return;
+    if (!force && currentRoute === hash) return;
     currentRoute = hash;
 
     const activePage = route.page === 'idea-editor' ? 'ideas'
@@ -972,6 +981,13 @@
 
   document.getElementById('modal-close-btn').addEventListener('click', () => closeModal('modal'));
   document.getElementById('confirm-close-btn').addEventListener('click', () => closeModal('confirm-modal'));
+
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigate(link.getAttribute('href'));
+    });
+  });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -1210,7 +1226,7 @@
     if (!plan) return;
     plan.completed = !plan.completed;
     saveData(data);
-    handleRoute();
+    renderCurrent();
   }
 
   function confirmDeletePlan(id) {
